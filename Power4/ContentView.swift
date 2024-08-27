@@ -23,6 +23,12 @@ func blankGrid(sizeX: Int, sizeY: Int) -> [[CaseColor]] {
     return [[CaseColor]].init(repeating: [CaseColor].init(repeating: CaseColor.blank, count: sizeX), count: sizeY)
 }
 
+func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
+    var isVictory = false
+    
+    return isVictory
+}
+
 func computeGrid(grid: [[CaseColor]], x: Int, y: Int, turn: Bool) -> [[CaseColor]] {
     let sizeY = defaultSizeY
     var newGrid = grid
@@ -88,13 +94,24 @@ struct GridView: View {
             Path { path in
                 for y in (0...sizeY-1) {
                     for x in (0...sizeX-1) {
-                        if (grid[y][x] == CaseColor.blank) {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
                             path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
                             path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
+                    }
+                }
+            }
+            .fill(.blue)
+            .gesture(myGesture)
+            Path { path in
+                for y in (0...sizeY-1) {
+                    for x in (0...sizeX-1) {
+                        if (grid[y][x] == CaseColor.blank) {
+                            let hOffset: CGFloat = CGFloat(x) * boxSpacing
+                            let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
                         }
                     }
                 }
@@ -107,10 +124,14 @@ struct GridView: View {
                         if (grid[y][x] == CaseColor.yellow) {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+
+                            /*
                             path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
                             path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
+                             */
                         }
                     }
                 }
@@ -123,10 +144,13 @@ struct GridView: View {
                         if (grid[y][x] == CaseColor.red) {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                            /*
                             path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
                             path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
+                             */
                         }
                     }
                 }
@@ -153,6 +177,11 @@ struct GridView: View {
              print("geo height: \(geometry.size.height) geo width: \(geometry.size.width) boxSpacing: \(boxSpacing) #H lines: \(numberOfHorizontalGridLines) #V lines: \(numberOfVerticalGridLines) height: \(height) width: \(width)")
              }
              */
+        }
+        Button( action: {
+            grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
+        }) {
+            Label("Reset", systemImage: "restart")
         }
     }
 }
