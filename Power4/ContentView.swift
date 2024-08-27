@@ -17,6 +17,7 @@ let redTurn: Bool = false
 var turn: Bool = yellowTurn
 var nbVictoryYellow: Int = 0
 var nbVictoryRed: Int = 0
+var partyLock: Bool = false
 
 enum CaseColor: Int {
     case blank = 0, yellow, red
@@ -89,6 +90,7 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     let sizeY = defaultSizeY
     var newGrid = grid
     
+    if (!partyLock) {
         for i in (0...sizeY-1) {
             if (grid[(sizeY-1)-i][x] == CaseColor.blank) {
                 if (turn == yellowTurn) {
@@ -104,6 +106,7 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
                 }
             }
         }
+    }
     return newGrid
 }
 
@@ -158,19 +161,23 @@ struct Power4View: View {
                 self.pt = $0.startLocation
                 //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
-                if (checkVictory(grid: grid, color: CaseColor.yellow))
-                {
-                    print ("Yellow Victory")
-                    victoryText = "Yellow Victory !!!!!"
-                    victoryColor = .yellow
-                    nbVictoryYellow += 1
-                }
-                else if (checkVictory(grid: grid, color: CaseColor.red))
-                {
-                    print ("Red Victory")
-                    victoryText = "Red Victory !!!!!"
-                    victoryColor = .red
-                    nbVictoryRed += 1
+                if (!partyLock) {
+                    if (checkVictory(grid: grid, color: CaseColor.yellow))
+                    {
+                        print ("Yellow Victory")
+                        victoryText = "Yellow Victory !!!!!"
+                        victoryColor = .yellow
+                        nbVictoryYellow += 1
+                        partyLock = true
+                    }
+                    else if (checkVictory(grid: grid, color: CaseColor.red))
+                    {
+                        print ("Red Victory")
+                        victoryText = "Red Victory !!!!!"
+                        victoryColor = .red
+                        nbVictoryRed += 1
+                        partyLock = true
+                    }
                 }
             })
             Path { path in
@@ -239,6 +246,7 @@ struct Power4View: View {
                 victoryText = ""
                 victoryColor = .black
                 turn = yellowTurn
+                partyLock = false
             }) {
                 Label("Reset", systemImage: "restart")
             }
