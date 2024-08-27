@@ -15,6 +15,8 @@ let defaultVictory: Int = 4
 let yellowTurn: Bool = true
 let redTurn: Bool = false
 var turn: Bool = yellowTurn
+var nbVictoryYellow: Int = 0
+var nbVictoryRed: Int = 0
 
 enum CaseColor: Int {
     case blank = 0, yellow, red
@@ -148,7 +150,6 @@ struct Power4View: View {
     @State var grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
     @State var victoryText = ""
     @State var victoryColor = Color.black
-    @State var turnColor = Color.yellow
     
     var body: some View {
         GeometryReader { geometry in
@@ -157,23 +158,19 @@ struct Power4View: View {
                 self.pt = $0.startLocation
                 //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
-                if (turn == yellowTurn) {
-                    turnColor = Color.yellow
-                }
-                else {
-                    turnColor = Color.red
-                }
                 if (checkVictory(grid: grid, color: CaseColor.yellow))
                 {
                     print ("Yellow Victory")
                     victoryText = "Yellow Victory !!!!!"
                     victoryColor = .yellow
+                    nbVictoryYellow += 1
                 }
                 else if (checkVictory(grid: grid, color: CaseColor.red))
                 {
                     print ("Red Victory")
                     victoryText = "Red Victory !!!!!"
                     victoryColor = .red
+                    nbVictoryRed += 1
                 }
             })
             Path { path in
@@ -232,19 +229,24 @@ struct Power4View: View {
             GridView()
         }
         HStack {
-            Label("Turn", systemImage: "circle.fill")
-                .foregroundColor(turnColor)
+            Text("Yellow: \(nbVictoryYellow)")
+                .foregroundStyle(Color.yellow)
+            Text("Red \(nbVictoryRed)")
+                .foregroundStyle(Color.red)
+            Spacer()
             Button( action: {
                 grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
                 victoryText = ""
                 victoryColor = .black
                 turn = yellowTurn
-                turnColor = Color.yellow
             }) {
                 Label("Reset", systemImage: "restart")
             }
             Text(victoryText)
                 .foregroundStyle(victoryColor)
+            Spacer()
+            Label("Turn", systemImage: "circle.fill")
+                .foregroundColor(turn == yellowTurn ? Color.yellow : Color.red)
         }
     }
 }
