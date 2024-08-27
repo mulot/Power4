@@ -52,6 +52,30 @@ func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
                         return true
                     }
                 }
+                if (((y + defaultVictory - 1) <= defaultSizeY-1) && ((x + defaultVictory - 1) <= defaultSizeX-1)) {
+                    var nb = 0
+                    for i in (0...(defaultVictory-1)) {
+                        if (grid[y+i][x+i] != color) {
+                            break
+                        }
+                        nb += 1
+                    }
+                    if (nb == defaultVictory) {
+                        return true
+                    }
+                }
+                if (((y + defaultVictory - 1) <= defaultSizeY-1) && ((x - defaultVictory - 1) >= 0)) {
+                    var nb = 0
+                    for i in (0...(defaultVictory-1)) {
+                        if (grid[y+i][x-i] != color) {
+                            break
+                        }
+                        nb += 1
+                    }
+                    if (nb == defaultVictory) {
+                        return true
+                    }
+                }
             }
         }
     }
@@ -84,17 +108,14 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
 struct ContentView: View {
     
     var body: some View {
-            GridView()
+            Power4View()
     }
 }
 
 struct GridView: View {
     var sizeX = defaultSizeX
     var sizeY = defaultSizeY
-    @State private var pt: CGPoint = .zero
-    @State var grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
-    @State var victoryText = ""
-    @State var victoryColor = Color.black
+    var lineColor = Color.black
     
     var body: some View {
         GeometryReader { geometry in
@@ -103,10 +124,45 @@ struct GridView: View {
             let numberOfVerticalGridLines = sizeX
             let height = CGFloat(numberOfHorizontalGridLines) * boxSpacing
             let width = CGFloat(numberOfVerticalGridLines) * boxSpacing
+            Path { path in
+                for index in 0...numberOfVerticalGridLines {
+                    let vOffset: CGFloat = CGFloat(index) * boxSpacing
+                    path.move(to: CGPoint(x: vOffset, y: 0))
+                    path.addLine(to: CGPoint(x: vOffset, y: height))
+                }
+                for index in 0...numberOfHorizontalGridLines {
+                    let hOffset: CGFloat = CGFloat(index) * boxSpacing
+                    path.move(to: CGPoint(x: 0, y: hOffset))
+                    path.addLine(to: CGPoint(x: width, y: hOffset))
+                }
+            }
+            .stroke(lineColor)
+        }
+    }
+}
+
+struct Power4View: View {
+    var sizeX = defaultSizeX
+    var sizeY = defaultSizeY
+    @State private var pt: CGPoint = .zero
+    @State var grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
+    @State var victoryText = ""
+    @State var victoryColor = Color.black
+    @State var turnColor = Color.yellow
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let boxSpacing:CGFloat = min(geometry.size.height / CGFloat(sizeY), geometry.size.width / CGFloat(sizeX))
             let myGesture = DragGesture(minimumDistance: 0, coordinateSpace: .local).onEnded({
                 self.pt = $0.startLocation
                 //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
+                if (turn == yellowTurn) {
+                    turnColor = Color.yellow
+                }
+                else {
+                    turnColor = Color.red
+                }
                 if (checkVictory(grid: grid, color: CaseColor.yellow))
                 {
                     print ("Yellow Victory")
@@ -154,13 +210,6 @@ struct GridView: View {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
                             path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
-
-                            /*
-                            path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
-                            path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
-                            path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
-                            path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
-                             */
                         }
                     }
                 }
@@ -174,45 +223,23 @@ struct GridView: View {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
                             path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
-                            /*
-                            path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
-                            path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
-                            path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
-                            path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
-                             */
                         }
                     }
                 }
             }
             .fill(.red)
             .gesture(myGesture)
-            Path { path in
-                for index in 0...numberOfVerticalGridLines {
-                    let vOffset: CGFloat = CGFloat(index) * boxSpacing
-                    path.move(to: CGPoint(x: vOffset, y: 0))
-                    path.addLine(to: CGPoint(x: vOffset, y: height))
-                }
-                for index in 0...numberOfHorizontalGridLines {
-                    let hOffset: CGFloat = CGFloat(index) * boxSpacing
-                    path.move(to: CGPoint(x: 0, y: hOffset))
-                    path.addLine(to: CGPoint(x: width, y: hOffset))
-                }
-            }
-            .stroke(Color.black)
-            //.background(Color.blue)
-            /*
-             .onAppear()
-             {
-             print("geo height: \(geometry.size.height) geo width: \(geometry.size.width) boxSpacing: \(boxSpacing) #H lines: \(numberOfHorizontalGridLines) #V lines: \(numberOfVerticalGridLines) height: \(height) width: \(width)")
-             }
-             */
+            GridView()
         }
         HStack {
+            Label("Turn", systemImage: "circle.fill")
+                .foregroundColor(turnColor)
             Button( action: {
                 grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
                 victoryText = ""
                 victoryColor = .black
                 turn = yellowTurn
+                turnColor = Color.yellow
             }) {
                 Label("Reset", systemImage: "restart")
             }
