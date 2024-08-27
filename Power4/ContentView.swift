@@ -64,7 +64,7 @@ func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
                         return true
                     }
                 }
-                if (((y + defaultVictory - 1) <= defaultSizeY-1) && ((x - defaultVictory - 1) >= 0)) {
+                if (((y + defaultVictory - 1) <= defaultSizeY-1) && ((x - (defaultVictory - 1)) >= 0)) {
                     var nb = 0
                     for i in (0...(defaultVictory-1)) {
                         if (grid[y+i][x-i] != color) {
