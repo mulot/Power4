@@ -11,6 +11,7 @@ import SwiftData
 let defaultSizeX = 7
 let defaultSizeY = 6
 let defaultBoxSpacing: CGFloat = 10
+let defaultVictory: Int = 4
 let yellowTurn: Bool = true
 let redTurn: Bool = false
 var turn: Bool = yellowTurn
@@ -24,12 +25,41 @@ func blankGrid(sizeX: Int, sizeY: Int) -> [[CaseColor]] {
 }
 
 func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
-    var isVictory = false
-    
-    return isVictory
+    for y in (0...defaultSizeY-1) {
+        for x in (0...defaultSizeX-1) {
+            if (grid[y][x] == color) {
+                if ((x + defaultVictory - 1) <= defaultSizeX-1) {
+                    var nb = 0
+                    for i in (0...(defaultVictory-1)) {
+                        if (grid[y][x+i] != color) {
+                            break
+                        }
+                        nb += 1
+                    }
+                    if (nb == defaultVictory) {
+                        return true
+                    }
+                }
+                if ((y + defaultVictory - 1) <= defaultSizeY-1) {
+                    var nb = 0
+                    for i in (0...(defaultVictory-1)) {
+                        if (grid[y+i][x] != color) {
+                            break
+                        }
+                        nb += 1
+                    }
+                    if (nb == defaultVictory) {
+                        return true
+                    }
+                }
+            }
+        }
+    }
+    //print ("Victory: \(isVictory)")
+    return false
 }
 
-func computeGrid(grid: [[CaseColor]], x: Int, y: Int, turn: Bool) -> [[CaseColor]] {
+func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     let sizeY = defaultSizeY
     var newGrid = grid
     
@@ -37,11 +67,15 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int, turn: Bool) -> [[CaseColor
             if (grid[(sizeY-1)-i][x] == CaseColor.blank) {
                 if (turn == yellowTurn) {
                     newGrid[(sizeY-1)-i][x] = CaseColor.yellow
+                    turn = !turn
+                    return newGrid
+                    
                 }
                 else {
                     newGrid[(sizeY-1)-i][x] = CaseColor.red
+                    turn = !turn
+                    return newGrid
                 }
-                break
             }
         }
     return newGrid
@@ -59,6 +93,8 @@ struct GridView: View {
     var sizeY = defaultSizeY
     @State private var pt: CGPoint = .zero
     @State var grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
+    @State var victoryText = ""
+    @State var victoryColor = Color.black
     
     var body: some View {
         GeometryReader { geometry in
@@ -69,27 +105,20 @@ struct GridView: View {
             let width = CGFloat(numberOfVerticalGridLines) * boxSpacing
             let myGesture = DragGesture(minimumDistance: 0, coordinateSpace: .local).onEnded({
                 self.pt = $0.startLocation
-                print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
-                /*
-                if (turn == yellowTurn) {
-                    grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)] = CaseColor.yellow
-                }
-                else
+                //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
+                grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
+                if (checkVictory(grid: grid, color: CaseColor.yellow))
                 {
-                    grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)] = CaseColor.red
+                    print ("Yellow Victory")
+                    victoryText = "Yellow Victory !!!!!"
+                    victoryColor = .yellow
                 }
-                */
-                grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing), turn: turn)
-                turn = !turn
-                /*
-                 if (grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)] == 0) {
-                 grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)] = 1
-                 }
-                 else {
-                 grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)] = 0
-                 }
-                 */
-                //print("new box val: \(grid[Int(pt.y/boxSpacing)][Int(pt.x/boxSpacing)])")
+                else if (checkVictory(grid: grid, color: CaseColor.red))
+                {
+                    print ("Red Victory")
+                    victoryText = "Red Victory !!!!!"
+                    victoryColor = .red
+                }
             })
             Path { path in
                 for y in (0...sizeY-1) {
@@ -178,10 +207,17 @@ struct GridView: View {
              }
              */
         }
-        Button( action: {
-            grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
-        }) {
-            Label("Reset", systemImage: "restart")
+        HStack {
+            Button( action: {
+                grid = blankGrid(sizeX: defaultSizeX, sizeY: defaultSizeY)
+                victoryText = ""
+                victoryColor = .black
+                turn = yellowTurn
+            }) {
+                Label("Reset", systemImage: "restart")
+            }
+            Text(victoryText)
+                .foregroundStyle(victoryColor)
         }
     }
 }
