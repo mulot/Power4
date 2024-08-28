@@ -18,6 +18,8 @@ var turn: Bool = yellowTurn
 var nbVictoryYellow: Int = 0
 var nbVictoryRed: Int = 0
 var partyLock: Bool = false
+let redIA: Bool = true
+let yellowIA: Bool = false
 
 enum CaseColor: Int {
     case blank = 0, yellow, red
@@ -110,6 +112,23 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     return newGrid
 }
 
+func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
+    var newGrid = grid
+    
+    let random = Int.random(in: 0...defaultSizeX-1)
+    
+    for x in (0...defaultSizeX-1) {
+        for y in (0...defaultSizeY-1) {
+            if (newGrid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                turn = !turn
+                newGrid[(defaultSizeY-1)-y][x] = color
+                return newGrid
+            }
+        }
+    }
+    return newGrid
+}
+
 struct ContentView: View {
     
     var body: some View {
@@ -154,6 +173,28 @@ struct Power4View: View {
     @State var victoryText = ""
     @State var victoryColor = Color.black
     
+    func checkTurn()
+    {
+        if (!partyLock) {
+            if (checkVictory(grid: grid, color: CaseColor.yellow))
+            {
+                print ("Yellow Victory")
+                victoryText = "Yellow Victory !!!!!"
+                victoryColor = .yellow
+                nbVictoryYellow += 1
+                partyLock = true
+            }
+            else if (checkVictory(grid: grid, color: CaseColor.red))
+            {
+                print ("Red Victory")
+                victoryText = "Red Victory !!!!!"
+                victoryColor = .red
+                nbVictoryRed += 1
+                partyLock = true
+            }
+        }
+    }
+    
     var body: some View {
         GeometryReader { geometry in
             let boxSpacing:CGFloat = min(geometry.size.height / CGFloat(sizeY), geometry.size.width / CGFloat(sizeX))
@@ -161,24 +202,12 @@ struct Power4View: View {
                 self.pt = $0.startLocation
                 //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
-                if (!partyLock) {
-                    if (checkVictory(grid: grid, color: CaseColor.yellow))
-                    {
-                        print ("Yellow Victory")
-                        victoryText = "Yellow Victory !!!!!"
-                        victoryColor = .yellow
-                        nbVictoryYellow += 1
-                        partyLock = true
-                    }
-                    else if (checkVictory(grid: grid, color: CaseColor.red))
-                    {
-                        print ("Red Victory")
-                        victoryText = "Red Victory !!!!!"
-                        victoryColor = .red
-                        nbVictoryRed += 1
-                        partyLock = true
-                    }
+                checkTurn()
+                if (turn == redTurn && redIA && !partyLock) {
+                    print("IA red turn\n")
+                    grid = playIA(grid: grid, color: CaseColor.red)
                 }
+                checkTurn()
             })
             Path { path in
                 for y in (0...sizeY-1) {
