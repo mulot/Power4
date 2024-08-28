@@ -114,9 +114,23 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
 
 func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid = grid
+    var xList = [Int](0...(defaultSizeX-1))
     
-    let random = Int.random(in: 0...defaultSizeX-1)
+    while (!xList.isEmpty)
+    {
+        let r = Int.random(in: 0...(xList.count-1))
+        //print("r :\(r) List elt: \(xList[r])")
+            for y in (0...defaultSizeY-1) {
+                if (newGrid[(defaultSizeY-1)-y][r] == CaseColor.blank) {
+                    turn = !turn
+                    newGrid[(defaultSizeY-1)-y][r] = color
+                    return newGrid
+                }
+            }
+        xList.remove(at: r)
+    }
     
+    /*
     for x in (0...defaultSizeX-1) {
         for y in (0...defaultSizeY-1) {
             if (newGrid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
@@ -126,6 +140,7 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
             }
         }
     }
+     */
     return newGrid
 }
 
