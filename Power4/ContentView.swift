@@ -114,7 +114,23 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
 
 func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid = grid
+    var tmpGrid: [[CaseColor]]
     var xList = [Int](0...(defaultSizeX-1))
+    
+    for x in (0...defaultSizeX-1) {
+        for y in (0...defaultSizeY-1) {
+            if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                tmpGrid = grid
+                tmpGrid[(defaultSizeY-1)-y][x] = color
+                if (checkVictory(grid: tmpGrid, color: color)) {
+                    newGrid = tmpGrid
+                    turn = !turn
+                    return newGrid
+                }
+                break
+            }
+        }
+    }
     
     while (!xList.isEmpty)
     {
@@ -122,25 +138,13 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
         //print("r :\(r) List elt: \(xList[r])")
             for y in (0...defaultSizeY-1) {
                 if (newGrid[(defaultSizeY-1)-y][r] == CaseColor.blank) {
-                    turn = !turn
                     newGrid[(defaultSizeY-1)-y][r] = color
+                    turn = !turn
                     return newGrid
                 }
             }
         xList.remove(at: r)
     }
-    
-    /*
-    for x in (0...defaultSizeX-1) {
-        for y in (0...defaultSizeY-1) {
-            if (newGrid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
-                turn = !turn
-                newGrid[(defaultSizeY-1)-y][x] = color
-                return newGrid
-            }
-        }
-    }
-     */
     return newGrid
 }
 
@@ -219,7 +223,7 @@ struct Power4View: View {
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
                 checkTurn()
                 if (turn == redTurn && redIA && !partyLock) {
-                    print("IA red turn\n")
+                    //print("IA red turn\n")
                     grid = playIA(grid: grid, color: CaseColor.red)
                 }
                 checkTurn()
