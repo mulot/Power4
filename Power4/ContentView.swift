@@ -116,7 +116,13 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid = grid
     var tmpGrid: [[CaseColor]]
     var xList = [Int](0...(defaultSizeX-1))
+    var enemyColor: CaseColor = CaseColor.red
     
+    if (color == CaseColor.red) {
+        enemyColor = CaseColor.yellow
+    }
+    
+    //check if there is a winning move for the color
     for x in (0...defaultSizeX-1) {
         for y in (0...defaultSizeY-1) {
             if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
@@ -132,6 +138,24 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
         }
     }
     
+    //check if there is a winning move for the enemy
+    for x in (0...defaultSizeX-1) {
+        for y in (0...defaultSizeY-1) {
+            if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                tmpGrid = grid
+                tmpGrid[(defaultSizeY-1)-y][x] = enemyColor
+                if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+                    tmpGrid[(defaultSizeY-1)-y][x] = color
+                    newGrid = tmpGrid
+                    turn = !turn
+                    return newGrid
+                }
+                break
+            }
+        }
+    }
+    
+    //random play
     while (!xList.isEmpty)
     {
         let r = Int.random(in: 0...(xList.count-1))
