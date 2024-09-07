@@ -112,6 +112,34 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     return newGrid
 }
 
+func checkEnemyNextMove(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]? {
+    var newGrid = grid
+    var tmpGrid: [[CaseColor]]
+    var enemyColor: CaseColor = CaseColor.red
+    
+    if (color == CaseColor.red) {
+        enemyColor = CaseColor.yellow
+    }
+    
+    for x in (0...defaultSizeX-1) {
+        for y in (0...defaultSizeY-1) {
+            if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                tmpGrid = grid
+                tmpGrid[(defaultSizeY-1)-y][x] = enemyColor
+                if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+                    print("counter enemy who will win in y: \((defaultSizeY-1)-y) x: \(x)")
+                    tmpGrid[(defaultSizeY-1)-y][x] = color
+                    newGrid = tmpGrid
+                    turn = !turn
+                    return newGrid
+                }
+                break
+            }
+        }
+    }
+    return nil
+}
+
 func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid = grid
     var tmpGrid: [[CaseColor]]
@@ -138,13 +166,15 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
         }
     }
     
-    //check if there is a winning move for the enemy
+    //check if there is a winning move for the enemy next move
+    /*
     for x in (0...defaultSizeX-1) {
         for y in (0...defaultSizeY-1) {
             if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
                 tmpGrid = grid
                 tmpGrid[(defaultSizeY-1)-y][x] = enemyColor
                 if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+                    print("counter enemy who will win in y: \((defaultSizeY-1)-y) x: \(x)")
                     tmpGrid[(defaultSizeY-1)-y][x] = color
                     newGrid = tmpGrid
                     turn = !turn
@@ -154,6 +184,12 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
             }
         }
     }
+     */
+    let result = checkEnemyNextMove(grid: grid, color: color)
+    if (result != nil)
+    {
+        return result!
+    }
     
     //random play
     while (!xList.isEmpty)
@@ -162,9 +198,26 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
         //print("r :\(r) List elt: \(xList[r])")
             for y in (0...defaultSizeY-1) {
                 if (newGrid[(defaultSizeY-1)-y][r] == CaseColor.blank) {
-                    newGrid[(defaultSizeY-1)-y][r] = color
-                    turn = !turn
-                    return newGrid
+                    tmpGrid = grid
+                    tmpGrid[(defaultSizeY-1)-y][r] = color
+                    let result = checkEnemyNextMove(grid: tmpGrid, color: color)
+                    /*
+                    if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+                        print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
+                        break
+                    }
+                     */
+                    if (result != nil)
+                    {
+                        print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
+                        break
+                    }
+                    else {
+                        print("play random in y: \((defaultSizeY-1)-y) x: \(r)")
+                        newGrid[(defaultSizeY-1)-y][r] = color
+                        turn = !turn
+                        return newGrid
+                    }
                 }
             }
         xList.remove(at: r)
@@ -252,6 +305,7 @@ struct Power4View: View {
                 }
                 checkTurn()
             })
+            //draw game board
             Path { path in
                 for y in (0...sizeY-1) {
                     for x in (0...sizeX-1) {
@@ -266,6 +320,7 @@ struct Power4View: View {
             }
             .fill(.blue)
             .gesture(myGesture)
+            //draw game board circle
             Path { path in
                 for y in (0...sizeY-1) {
                     for x in (0...sizeX-1) {
@@ -279,6 +334,7 @@ struct Power4View: View {
             }
             .fill(.white)
             .gesture(myGesture)
+            //draw yellow pieces
             Path { path in
                 for y in (0...sizeY-1) {
                     for x in (0...sizeX-1) {
@@ -292,6 +348,7 @@ struct Power4View: View {
             }
             .fill(.yellow)
             .gesture(myGesture)
+            //draw red pieces
             Path { path in
                 for y in (0...sizeY-1) {
                     for x in (0...sizeX-1) {
