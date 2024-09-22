@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CoreML
 
 let defaultSizeX = 7
 let defaultSizeY = 6
@@ -23,6 +24,60 @@ let yellowIA: Bool = false
 
 enum CaseColor: Int {
     case blank = 0, yellow, red
+}
+
+func exportResult(grid: [[CaseColor]], victory: CaseColor) {
+    let BUFFER_LINES:Int = 200000000
+    //let timestamp = Date().timeIntervalSince1970
+    //let filePath = "/Users/mulot/Downloads/power4-result-\(timestamp).csv"
+    let filePath = "/Users/mulot/Downloads/power4-result.csv"
+    if FileManager.default.fileExists(atPath: filePath) == false {
+        FileManager.default.createFile(atPath: filePath, contents: nil, attributes: nil)
+    }
+    let cvsFile = FileHandle(forWritingAtPath: filePath)
+    if (cvsFile != nil) {
+        //print("IS file!")
+        print(filePath)
+        do {
+            try cvsFile!.seekToEnd()
+        }
+        catch {
+            print("Error seeking to end of file")
+        }
+        var cvsData = Data(capacity: BUFFER_LINES)
+        var cvsStr: String
+        //cvsStr = "1;2;3;4;5.6:7"
+        cvsStr = String()
+        for y in (0...defaultSizeY-1) {
+            for x in (0...defaultSizeX-1) {
+                if (grid[y][x] == CaseColor.red) {
+                    cvsStr += "1,"
+                }
+                else if (grid[y][x] == CaseColor.yellow) {
+                    cvsStr += "2,"
+                }
+                else
+                {
+                    cvsStr += "0,"
+                }
+                //cvsStr += "X\(x)Y\(y),"
+                
+            }
+        }
+        if (victory == CaseColor.yellow) {
+            cvsStr += "2\n"
+        }
+        else {
+            cvsStr += "1\n"
+        }
+        cvsData.append(cvsStr.data(using: String.Encoding.ascii)!)
+        cvsFile!.write(cvsData)
+        cvsFile!.synchronizeFile()
+        cvsFile!.closeFile()
+    }
+    else {
+        //print("NO file !")
+    }
 }
 
 func blankGrid(sizeX: Int, sizeY: Int) -> [[CaseColor]] {
@@ -139,16 +194,63 @@ func checkEnemyNextMove(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?
     }
     return nil
 }
+func convertGridToML(grid: [[CaseColor]]) -> [[Int64]] {
+    var result: [[Int64]]
+    
+    let sizeY = grid.count
+    let sizeX = grid[0].count
+    result = Array(repeating: Array(repeating: 0, count: sizeX), count: sizeY)
+    
+    for y in (0...defaultSizeY-1) {
+        for x in (0...defaultSizeX-1) {
+            switch grid[y][x] {
+            case .red:
+                result[y][x] = 1
+            case .yellow:
+                result[y][x] = 2
+            case .blank:
+                result[y][x] = 0
+            }
+        }
+    }
+    return result
+}
+
+func playML(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
+    var newGrid = grid
+    var gridML = convertGridToML(grid: grid)
+    
+    do {
+        let config = MLModelConfiguration()
+        let model = try Power4ML(configuration: config)
+        
+        let prediction = try model.prediction(X0Y0: gridML[0][0], X1Y0: gridML[0][1], X2Y0: gridML[0][2], X3Y0: gridML[0][3], X4Y0: gridML[0][4], X5Y0: gridML[0][5], X6Y0: gridML[0][6], X0Y1: gridML[1][0], X1Y1: gridML[1][1], X2Y1: gridML[1][2], X3Y1: gridML[1][3], X4Y1: gridML[1][4], X5Y1: gridML[1][5], X6Y1: gridML[1][6], X0Y2: gridML[2][0], X1Y2: gridML[2][1], X2Y2: gridML[2][2], X3Y2: gridML[2][3], X4Y2: gridML[2][4], X5Y2: gridML[2][5], X6Y2: gridML[2][6], X0Y3: gridML[3][0], X1Y3: gridML[3][1], X2Y3: gridML[3][2], X3Y3: gridML[3][3], X4Y3: gridML[3][4], X5Y3: gridML[3][5], X6Y3: gridML[3][6], X0Y4: gridML[4][0], X1Y4: gridML[4][1], X2Y4: gridML[4][2], X3Y4: gridML[4][3], X4Y4: gridML[4][4], X5Y4: gridML[4][5], X6Y4: gridML[4][6], X0Y5: gridML[5][0], X1Y5: gridML[5][1], X2Y5: gridML[5][2], X3Y5: gridML[5][3], X4Y5: gridML[5][4], X5Y5: gridML[5][5], X6Y5: gridML[5][6])
+        print("Prediction: \(prediction.Winner)")
+        if (prediction.Winner > 1.5) {
+            print("Winner should be red")
+        }
+        else {
+            print("Winner should be yellow")
+        }
+        // more code here
+    } catch {
+        // something went wrong!
+    }
+    
+    return newGrid
+}
 
 func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid = grid
     var tmpGrid: [[CaseColor]]
     var xList = [Int](0...(defaultSizeX-1))
+    /*
     var enemyColor: CaseColor = CaseColor.red
     
     if (color == CaseColor.red) {
         enemyColor = CaseColor.yellow
     }
+     */
     
     //check if there is a winning move for the color
     for x in (0...defaultSizeX-1) {
@@ -278,6 +380,7 @@ struct Power4View: View {
                 victoryText = "Yellow Victory !!!!!"
                 victoryColor = .yellow
                 nbVictoryYellow += 1
+                exportResult(grid: grid, victory: CaseColor.yellow)
                 partyLock = true
             }
             else if (checkVictory(grid: grid, color: CaseColor.red))
@@ -286,6 +389,7 @@ struct Power4View: View {
                 victoryText = "Red Victory !!!!!"
                 victoryColor = .red
                 nbVictoryRed += 1
+                exportResult(grid: grid, victory: CaseColor.red)
                 partyLock = true
             }
         }
@@ -302,6 +406,7 @@ struct Power4View: View {
                 if (turn == redTurn && redIA && !partyLock) {
                     //print("IA red turn\n")
                     grid = playIA(grid: grid, color: CaseColor.red)
+                    playML(grid: grid, color: CaseColor.red)
                 }
                 checkTurn()
             })
