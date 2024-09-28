@@ -12,7 +12,7 @@
 		941054F82C7E1C080027A8E5 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941054F72C7E1C080027A8E5 /* Item.swift */; };
 		941054FA2C7E1C0A0027A8E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 941054F92C7E1C0A0027A8E5 /* Assets.xcassets */; };
 		941054FD2C7E1C0A0027A8E5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 941054FC2C7E1C0A0027A8E5 /* Preview Assets.xcassets */; };
-		949A63422CA0B8CC0034D86E /* Power4ML.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 949A63412CA0B8CC0034D86E /* Power4ML.mlmodel */; };
+		947FE99C2CA828EA00D4AC1B /* Power4ML.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		941054F92C7E1C0A0027A8E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		941054FC2C7E1C0A0027A8E5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		941054FE2C7E1C0A0027A8E5 /* Power4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Power4.entitlements; sourceTree = "<group>"; };
-		949A63412CA0B8CC0034D86E /* Power4ML.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Power4ML.mlmodel; sourceTree = "<group>"; };
+		947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Power4ML.mlmodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,6 +42,7 @@
 			children = (
 				941054F22C7E1C080027A8E5 /* Power4 */,
 				941054F12C7E1C080027A8E5 /* Products */,
+				947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */,
 			);
 			sourceTree = "<group>";
 		};
@@ -69,7 +70,6 @@
 		941054FB2C7E1C0A0027A8E5 /* Preview Content */ = {
 			isa = PBXGroup;
 			children = (
-				949A63412CA0B8CC0034D86E /* Power4ML.mlmodel */,
 				941054FC2C7E1C0A0027A8E5 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
@@ -103,7 +103,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1540;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1600;
 				TargetAttributes = {
 					941054EF2C7E1C080027A8E5 = {
 						CreatedOnToolsVersion = 15.4;
@@ -147,7 +147,7 @@
 			files = (
 				941054F62C7E1C080027A8E5 /* ContentView.swift in Sources */,
 				941054F82C7E1C080027A8E5 /* Item.swift in Sources */,
-				949A63422CA0B8CC0034D86E /* Power4ML.mlmodel in Sources */,
+				947FE99C2CA828EA00D4AC1B /* Power4ML.mlmodel in Sources */,
 				941054F42C7E1C080027A8E5 /* Power4App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -189,6 +189,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -252,6 +253,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -283,6 +285,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Power4/Preview Content\"";
 				DEVELOPMENT_TEAM = VNLK894MAE;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -313,6 +316,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Power4/Preview Content\"";
 				DEVELOPMENT_TEAM = VNLK894MAE;
 				ENABLE_HARDENED_RUNTIME = YES;

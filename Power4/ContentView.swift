@@ -12,9 +12,11 @@ import CoreML
 let defaultSizeX = 7
 let defaultSizeY = 6
 let defaultBoxSpacing: CGFloat = 10
+/// Number of aligned tokens of the same color to win the game
 let defaultVictory: Int = 4
 let yellowTurn: Bool = true
 let redTurn: Bool = false
+/// Color of the player of the current move
 var turn: Bool = yellowTurn
 var nbVictoryYellow: Int = 0
 var nbVictoryRed: Int = 0
@@ -22,10 +24,17 @@ var partyLock: Bool = false
 let redIA: Bool = true
 let yellowIA: Bool = false
 
+
+/// Values for colors of the grid
 enum CaseColor: Int {
     case blank = 0, yellow, red
 }
 
+
+/// export game results to CSV file
+/// - Parameters:
+///   - grid: end of game grid
+///   - victory: victory color
 func exportResult(grid: [[CaseColor]], victory: CaseColor) {
     let BUFFER_LINES:Int = 200000000
     //let timestamp = Date().timeIntervalSince1970
@@ -80,10 +89,22 @@ func exportResult(grid: [[CaseColor]], victory: CaseColor) {
     }
 }
 
+
+/// Return a blank new grid
+/// - Parameters:
+///   - sizeX: X size of the new grid
+///   - sizeY: Y size of the new grid
+/// - Returns: blank grid
 func blankGrid(sizeX: Int, sizeY: Int) -> [[CaseColor]] {
     return [[CaseColor]].init(repeating: [CaseColor].init(repeating: CaseColor.blank, count: sizeX), count: sizeY)
 }
 
+
+/// Check if color is a winner for the current grid
+/// - Parameters:
+///   - grid: current grid
+///   - color: color to check
+/// - Returns: is winner or not
 func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
     for y in (0...defaultSizeY-1) {
         for x in (0...defaultSizeX-1) {
@@ -143,6 +164,13 @@ func checkVictory(grid: [[CaseColor]], color: CaseColor) -> Bool {
     return false
 }
 
+
+/// Play the color where the current player has clicked
+/// - Parameters:
+///   - grid: current grid
+///   - x: X position of click
+///   - y: Y position of click
+/// - Returns: new grid with the played color of the player
 func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     let sizeY = defaultSizeY
     var newGrid = grid
@@ -152,13 +180,13 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
             if (grid[(sizeY-1)-i][x] == CaseColor.blank) {
                 if (turn == yellowTurn) {
                     newGrid[(sizeY-1)-i][x] = CaseColor.yellow
-                    turn = !turn
+                    //turn = !turn
                     return newGrid
                     
                 }
                 else {
                     newGrid[(sizeY-1)-i][x] = CaseColor.red
-                    turn = !turn
+                    //turn = !turn
                     return newGrid
                 }
             }
@@ -167,6 +195,12 @@ func computeGrid(grid: [[CaseColor]], x: Int, y: Int) -> [[CaseColor]]  {
     return newGrid
 }
 
+
+/// Check if the next move of the player enemy could win and play the move it if it could win
+/// - Parameters:
+///   - grid: current grid
+///   - color: player color
+/// - Returns: new grid if the enemy move is countered, nil if not
 func checkEnemyNextMove(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]? {
     var newGrid = grid
     var tmpGrid: [[CaseColor]]
@@ -185,7 +219,7 @@ func checkEnemyNextMove(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?
                     print("counter enemy who will win in y: \((defaultSizeY-1)-y) x: \(x)")
                     tmpGrid[(defaultSizeY-1)-y][x] = color
                     newGrid = tmpGrid
-                    turn = !turn
+                    //turn = !turn
                     return newGrid
                 }
                 break
@@ -194,6 +228,11 @@ func checkEnemyNextMove(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?
     }
     return nil
 }
+
+
+/// Convert a grid with colors to the corresponding grid with integer values
+/// - Parameter grid: current grid with color values
+/// - Returns: a grid of integer values for each color value
 func convertGridToML(grid: [[CaseColor]]) -> [[Int64]] {
     var result: [[Int64]]
     
@@ -216,40 +255,99 @@ func convertGridToML(grid: [[CaseColor]]) -> [[Int64]] {
     return result
 }
 
-func playML(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
-    var newGrid = grid
-    var gridML = convertGridToML(grid: grid)
+
+/// Play the next move with an IA based on a Machine Learning model
+/// - Parameters:
+///   - grid: current grid
+///   - color: color of the IA
+/// - Returns: New grid played by the ML model
+func playML(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?  {
+    var newGrid: [[CaseColor]]?
+    var tmpGrid: [[CaseColor]]
+    var gridML: [[Int64]]
+    var bestPrediction: Double = 0.0
+   
+    //check if there is a winning move for the color
+    for x in (0...defaultSizeX-1) {
+        for y in (0...defaultSizeY-1) {
+            if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                tmpGrid = grid
+                tmpGrid[(defaultSizeY-1)-y][x] = color
+                if (checkVictory(grid: tmpGrid, color: color)) {
+                    newGrid = tmpGrid
+                    //turn = !turn
+                    return newGrid
+                }
+                break
+            }
+        }
+    }
     
+    //check if there is a winning move for the enemy and take it
+    let result = checkEnemyNextMove(grid: grid, color: color)
+    if (result != nil)
+    {
+        return result!
+    }
+    
+    //ML play
     do {
         let config = MLModelConfiguration()
         let model = try Power4ML(configuration: config)
-        
-        let prediction = try model.prediction(X0Y0: gridML[0][0], X1Y0: gridML[0][1], X2Y0: gridML[0][2], X3Y0: gridML[0][3], X4Y0: gridML[0][4], X5Y0: gridML[0][5], X6Y0: gridML[0][6], X0Y1: gridML[1][0], X1Y1: gridML[1][1], X2Y1: gridML[1][2], X3Y1: gridML[1][3], X4Y1: gridML[1][4], X5Y1: gridML[1][5], X6Y1: gridML[1][6], X0Y2: gridML[2][0], X1Y2: gridML[2][1], X2Y2: gridML[2][2], X3Y2: gridML[2][3], X4Y2: gridML[2][4], X5Y2: gridML[2][5], X6Y2: gridML[2][6], X0Y3: gridML[3][0], X1Y3: gridML[3][1], X2Y3: gridML[3][2], X3Y3: gridML[3][3], X4Y3: gridML[3][4], X5Y3: gridML[3][5], X6Y3: gridML[3][6], X0Y4: gridML[4][0], X1Y4: gridML[4][1], X2Y4: gridML[4][2], X3Y4: gridML[4][3], X4Y4: gridML[4][4], X5Y4: gridML[4][5], X6Y4: gridML[4][6], X0Y5: gridML[5][0], X1Y5: gridML[5][1], X2Y5: gridML[5][2], X3Y5: gridML[5][3], X4Y5: gridML[5][4], X5Y5: gridML[5][5], X6Y5: gridML[5][6])
-        print("Prediction: \(prediction.Winner)")
-        if (prediction.Winner > 1.5) {
-            print("Winner should be red")
+        for x in (0...defaultSizeX-1) {
+            for y in (0...defaultSizeY-1) {
+                if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+                    tmpGrid = grid
+                    tmpGrid[(defaultSizeY-1)-y][x] = color
+                    do {
+                        gridML = convertGridToML(grid: tmpGrid)
+                        let prediction = try model.prediction(X0Y0: gridML[0][0], X1Y0: gridML[0][1], X2Y0: gridML[0][2], X3Y0: gridML[0][3], X4Y0: gridML[0][4], X5Y0: gridML[0][5], X6Y0: gridML[0][6], X0Y1: gridML[1][0], X1Y1: gridML[1][1], X2Y1: gridML[1][2], X3Y1: gridML[1][3], X4Y1: gridML[1][4], X5Y1: gridML[1][5], X6Y1: gridML[1][6], X0Y2: gridML[2][0], X1Y2: gridML[2][1], X2Y2: gridML[2][2], X3Y2: gridML[2][3], X4Y2: gridML[2][4], X5Y2: gridML[2][5], X6Y2: gridML[2][6], X0Y3: gridML[3][0], X1Y3: gridML[3][1], X2Y3: gridML[3][2], X3Y3: gridML[3][3], X4Y3: gridML[3][4], X5Y3: gridML[3][5], X6Y3: gridML[3][6], X0Y4: gridML[4][0], X1Y4: gridML[4][1], X2Y4: gridML[4][2], X3Y4: gridML[4][3], X4Y4: gridML[4][4], X5Y4: gridML[4][5], X6Y4: gridML[4][6], X0Y5: gridML[5][0], X1Y5: gridML[5][1], X2Y5: gridML[5][2], X3Y5: gridML[5][3], X4Y5: gridML[5][4], X5Y5: gridML[5][5], X6Y5: gridML[5][6])
+                        print("Prediction: \(prediction.Winner) in X: \(x) Y: \(y)")
+                        if (color == CaseColor.red) {
+                            if ((2 - prediction.Winner) < (2 - bestPrediction)) {
+                                print("Red best prediction: \(prediction.Winner) in X: \(x) Y: \(y)")
+                                bestPrediction = prediction.Winner
+                                newGrid = tmpGrid
+                            }
+                        }
+                        else if (color == CaseColor.yellow) {
+                            if ((1 - prediction.Winner) > (1 - bestPrediction)) {
+                                print("Yellow best prediction: \(prediction.Winner) in X: \(x) Y: \(y)")
+                                bestPrediction = prediction.Winner
+                                newGrid = tmpGrid
+                            }
+                        }
+                    } catch {
+                        print("ML failed")
+                    }
+                    break
+                }
+            }
         }
-        else {
-            print("Winner should be yellow")
-        }
-        // more code here
     } catch {
-        // something went wrong!
+        
     }
-    
+    //turn = !turn
+    //print(newGrid)
     return newGrid
 }
 
-func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
-    var newGrid = grid
+
+/// Play the next move with an IA based on conditions
+/// - Parameters:
+///   - grid: current grid
+///   - color: color of the IA
+/// - Returns: New grid played by the IA
+func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?  {
+    var newGrid: [[CaseColor]]?
     var tmpGrid: [[CaseColor]]
     var xList = [Int](0...(defaultSizeX-1))
     /*
-    var enemyColor: CaseColor = CaseColor.red
-    
-    if (color == CaseColor.red) {
-        enemyColor = CaseColor.yellow
-    }
+     var enemyColor: CaseColor = CaseColor.red
+     
+     if (color == CaseColor.red) {
+     enemyColor = CaseColor.yellow
+     }
      */
     
     //check if there is a winning move for the color
@@ -260,7 +358,7 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
                 tmpGrid[(defaultSizeY-1)-y][x] = color
                 if (checkVictory(grid: tmpGrid, color: color)) {
                     newGrid = tmpGrid
-                    turn = !turn
+                    //turn = !turn
                     return newGrid
                 }
                 break
@@ -270,22 +368,22 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     
     //check if there is a winning move for the enemy next move
     /*
-    for x in (0...defaultSizeX-1) {
-        for y in (0...defaultSizeY-1) {
-            if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
-                tmpGrid = grid
-                tmpGrid[(defaultSizeY-1)-y][x] = enemyColor
-                if (checkVictory(grid: tmpGrid, color: enemyColor)) {
-                    print("counter enemy who will win in y: \((defaultSizeY-1)-y) x: \(x)")
-                    tmpGrid[(defaultSizeY-1)-y][x] = color
-                    newGrid = tmpGrid
-                    turn = !turn
-                    return newGrid
-                }
-                break
-            }
-        }
-    }
+     for x in (0...defaultSizeX-1) {
+     for y in (0...defaultSizeY-1) {
+     if (grid[(defaultSizeY-1)-y][x] == CaseColor.blank) {
+     tmpGrid = grid
+     tmpGrid[(defaultSizeY-1)-y][x] = enemyColor
+     if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+     print("counter enemy who will win in y: \((defaultSizeY-1)-y) x: \(x)")
+     tmpGrid[(defaultSizeY-1)-y][x] = color
+     newGrid = tmpGrid
+     turn = !turn
+     return newGrid
+     }
+     break
+     }
+     }
+     }
      */
     let result = checkEnemyNextMove(grid: grid, color: color)
     if (result != nil)
@@ -298,30 +396,31 @@ func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     {
         let r = Int.random(in: 0...(xList.count-1))
         //print("r :\(r) List elt: \(xList[r])")
-            for y in (0...defaultSizeY-1) {
-                if (newGrid[(defaultSizeY-1)-y][r] == CaseColor.blank) {
-                    tmpGrid = grid
-                    tmpGrid[(defaultSizeY-1)-y][r] = color
-                    let result = checkEnemyNextMove(grid: tmpGrid, color: color)
-                    /*
-                    if (checkVictory(grid: tmpGrid, color: enemyColor)) {
-                        print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
-                        break
-                    }
-                     */
-                    if (result != nil)
-                    {
-                        print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
-                        break
-                    }
-                    else {
-                        print("play random in y: \((defaultSizeY-1)-y) x: \(r)")
-                        newGrid[(defaultSizeY-1)-y][r] = color
-                        turn = !turn
-                        return newGrid
-                    }
+        for y in (0...defaultSizeY-1) {
+            if (grid[(defaultSizeY-1)-y][r] == CaseColor.blank) {
+                tmpGrid = grid
+                tmpGrid[(defaultSizeY-1)-y][r] = color
+                let result = checkEnemyNextMove(grid: tmpGrid, color: color)
+                /*
+                 if (checkVictory(grid: tmpGrid, color: enemyColor)) {
+                 print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
+                 break
+                 }
+                 */
+                if (result != nil)
+                {
+                    print("counter 2nd enemy move who will win in y: \((defaultSizeY-1)-y) x: \(r)")
+                    break
+                }
+                else {
+                    print("play random in y: \((defaultSizeY-1)-y) x: \(r)")
+                    newGrid = grid
+                    newGrid![(defaultSizeY-1)-y][r] = color
+                    //turn = !turn
+                    return newGrid
                 }
             }
+        }
         xList.remove(at: r)
     }
     return newGrid
@@ -402,11 +501,13 @@ struct Power4View: View {
                 self.pt = $0.startLocation
                 //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
                 grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
+                turn = !turn
                 checkTurn()
                 if (turn == redTurn && redIA && !partyLock) {
                     //print("IA red turn\n")
-                    grid = playIA(grid: grid, color: CaseColor.red)
-                    playML(grid: grid, color: CaseColor.red)
+                    //grid = playIA(grid: grid, color: CaseColor.red)
+                    grid = playML(grid: grid, color: CaseColor.red) ?? playIA(grid: grid, color: CaseColor.red)!
+                    turn = !turn
                 }
                 checkTurn()
             })
