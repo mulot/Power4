@@ -12,7 +12,7 @@
 		941054F82C7E1C080027A8E5 /* Item.swift in Sources */ = {isa = PBXBuildFile; fileRef = 941054F72C7E1C080027A8E5 /* Item.swift */; };
 		941054FA2C7E1C0A0027A8E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 941054F92C7E1C0A0027A8E5 /* Assets.xcassets */; };
 		941054FD2C7E1C0A0027A8E5 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 941054FC2C7E1C0A0027A8E5 /* Preview Assets.xcassets */; };
-		947FE99C2CA828EA00D4AC1B /* Power4ML.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */; };
+		947FE99E2CA9971800D4AC1B /* Power4ML.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 947FE99D2CA9971800D4AC1B /* Power4ML.mlmodel */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,7 +23,7 @@
 		941054F92C7E1C0A0027A8E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		941054FC2C7E1C0A0027A8E5 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		941054FE2C7E1C0A0027A8E5 /* Power4.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Power4.entitlements; sourceTree = "<group>"; };
-		947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Power4ML.mlmodel; sourceTree = "<group>"; };
+		947FE99D2CA9971800D4AC1B /* Power4ML.mlmodel */ = {isa = PBXFileReference; lastKnownFileType = file.mlmodel; path = Power4ML.mlmodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -42,7 +42,7 @@
 			children = (
 				941054F22C7E1C080027A8E5 /* Power4 */,
 				941054F12C7E1C080027A8E5 /* Products */,
-				947FE99B2CA828EA00D4AC1B /* Power4ML.mlmodel */,
+				947FE99D2CA9971800D4AC1B /* Power4ML.mlmodel */,
 			);
 			sourceTree = "<group>";
 		};
@@ -147,7 +147,7 @@
 			files = (
 				941054F62C7E1C080027A8E5 /* ContentView.swift in Sources */,
 				941054F82C7E1C080027A8E5 /* Item.swift in Sources */,
-				947FE99C2CA828EA00D4AC1B /* Power4ML.mlmodel in Sources */,
+				947FE99E2CA9971800D4AC1B /* Power4ML.mlmodel in Sources */,
 				941054F42C7E1C080027A8E5 /* Power4App.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
