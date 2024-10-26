@@ -260,9 +260,9 @@ func convertGridToML(grid: [[CaseColor]]) -> [[Int64]] {
 ///   - grid: current grid
 ///   - color: player color
 /// - Returns: New grid with the player move
-func randomPlay(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]? {
+func randomPlay(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]] {
     var xList = [Int](0...(defaultSizeX-1))
-    var tmpGrid: [[CaseColor]]
+    var tmpGrid: [[CaseColor]] = grid
     
     while (!xList.isEmpty)
     {
@@ -289,7 +289,7 @@ func randomPlay(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]? {
         }
         xList.remove(at: r)
     }
-    return nil
+    return tmpGrid
 }
 
 /// Play the next move with an IA based on a Machine Learning model
@@ -378,7 +378,7 @@ func playML(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?  {
 ///   - grid: current grid
 ///   - color: color of the IA
 /// - Returns: New grid played by the IA
-func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]?  {
+func playIA(grid: [[CaseColor]], color: CaseColor) -> [[CaseColor]]  {
     var newGrid: [[CaseColor]]
     var tmpGrid: [[CaseColor]]
     /*
@@ -505,80 +505,89 @@ struct Power4View: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            let boxSpacing:CGFloat = min(geometry.size.height / CGFloat(sizeY), geometry.size.width / CGFloat(sizeX))
-            let myGesture = DragGesture(minimumDistance: 0, coordinateSpace: .local).onEnded({
-                self.pt = $0.startLocation
-                //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
-                grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
-                turn = !turn
-                checkTurn()
-                if (turn == redTurn && redIA && !partyLock) {
-                    //print("IA red turn\n")
-                    //grid = playIA(grid: grid, color: CaseColor.red)
-                    grid = playML(grid: grid, color: CaseColor.red) ?? playIA(grid: grid, color: CaseColor.red)!
+        ZStack {
+            GeometryReader { geometry in
+                let boxSpacing:CGFloat = min(geometry.size.height / CGFloat(sizeY), geometry.size.width / CGFloat(sizeX))
+                let myGesture = DragGesture(minimumDistance: 0, coordinateSpace: .local).onEnded({
+                    self.pt = $0.startLocation
+                    //print("Tapped at: \(pt.x), \(pt.y) Box X: \(Int(pt.x/boxSpacing)) Box Y: \(Int(pt.y/boxSpacing))")
+                    grid = computeGrid(grid: grid, x: Int(pt.x/boxSpacing), y: Int(pt.y/boxSpacing))
                     turn = !turn
-                }
-                checkTurn()
-            })
-            //draw game board
-            Path { path in
-                for y in (0...sizeY-1) {
-                    for x in (0...sizeX-1) {
+                    checkTurn()
+                    if (turn == redTurn && redIA && !partyLock) {
+                        //print("IA red turn\n")
+                        //grid = playIA(grid: grid, color: CaseColor.red)
+                        grid = playML(grid: grid, color: CaseColor.red) ?? playIA(grid: grid, color: CaseColor.red)
+                        turn = !turn
+                    }
+                    checkTurn()
+                })
+                //draw game board
+                Path { path in
+                    for y in (0...sizeY-1) {
+                        for x in (0...sizeX-1) {
                             let hOffset: CGFloat = CGFloat(x) * boxSpacing
                             let vOffset: CGFloat = CGFloat(y) * boxSpacing
                             path.move(to: CGPoint(x: 0 + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: 0 + vOffset))
                             path.addLine(to: CGPoint(x: boxSpacing + hOffset, y: boxSpacing + vOffset))
                             path.addLine(to: CGPoint(x: 0 + hOffset, y: boxSpacing + vOffset))
-                    }
-                }
-            }
-            .fill(.blue)
-            .gesture(myGesture)
-            //draw game board circle
-            Path { path in
-                for y in (0...sizeY-1) {
-                    for x in (0...sizeX-1) {
-                        if (grid[y][x] == CaseColor.blank) {
-                            let hOffset: CGFloat = CGFloat(x) * boxSpacing
-                            let vOffset: CGFloat = CGFloat(y) * boxSpacing
-                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
                         }
                     }
                 }
-            }
-            .fill(.white)
-            .gesture(myGesture)
-            //draw yellow pieces
-            Path { path in
-                for y in (0...sizeY-1) {
-                    for x in (0...sizeX-1) {
-                        if (grid[y][x] == CaseColor.yellow) {
-                            let hOffset: CGFloat = CGFloat(x) * boxSpacing
-                            let vOffset: CGFloat = CGFloat(y) * boxSpacing
-                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                .fill(.blue)
+                .gesture(myGesture)
+                //draw game board circle
+                Path { path in
+                    for y in (0...sizeY-1) {
+                        for x in (0...sizeX-1) {
+                            if (grid[y][x] == CaseColor.blank) {
+                                let hOffset: CGFloat = CGFloat(x) * boxSpacing
+                                let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                                path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                            }
                         }
                     }
                 }
-            }
-            .fill(.yellow)
-            .gesture(myGesture)
-            //draw red pieces
-            Path { path in
-                for y in (0...sizeY-1) {
-                    for x in (0...sizeX-1) {
-                        if (grid[y][x] == CaseColor.red) {
-                            let hOffset: CGFloat = CGFloat(x) * boxSpacing
-                            let vOffset: CGFloat = CGFloat(y) * boxSpacing
-                            path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                .fill(.white)
+                .gesture(myGesture)
+                //draw yellow pieces
+                Path { path in
+                    for y in (0...sizeY-1) {
+                        for x in (0...sizeX-1) {
+                            if (grid[y][x] == CaseColor.yellow) {
+                                let hOffset: CGFloat = CGFloat(x) * boxSpacing
+                                let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                                path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                            }
                         }
                     }
                 }
+                .fill(.yellow)
+                .gesture(myGesture)
+                //draw red pieces
+                Path { path in
+                    for y in (0...sizeY-1) {
+                        for x in (0...sizeX-1) {
+                            if (grid[y][x] == CaseColor.red) {
+                                let hOffset: CGFloat = CGFloat(x) * boxSpacing
+                                let vOffset: CGFloat = CGFloat(y) * boxSpacing
+                                path.addArc(center: CGPoint(x: hOffset + (boxSpacing / 2), y: vOffset + (boxSpacing / 2)), radius: boxSpacing / 2, startAngle: .degrees(0), endAngle: .degrees(360), clockwise: true)
+                            }
+                        }
+                    }
+                }
+                .fill(.red)
+                .gesture(myGesture)
+                GridView()
             }
-            .fill(.red)
-            .gesture(myGesture)
-            GridView()
+            Text(victoryText)
+                .foregroundStyle(victoryColor)
+                //.font(.largeTitle)
+                .font(.system(size: 64))
+                .bold()
+                .shadow(color: .primary, radius: 5, x: 5, y: 5)
+                
         }
         HStack {
             Text("Yellow: \(nbVictoryYellow)")
